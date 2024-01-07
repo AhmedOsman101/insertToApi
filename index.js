@@ -1,12 +1,18 @@
 const axios = require("axios");
 const mysql = require("mysql2/promise");
+require("dotenv").config();
+
+const DB_HOST = process.env.DB_HOST;
+const DB_USER = process.env.DB_USER;
+const DB_PASSWORD = process.env.DB_PASSWORD;
+const DB_NAME = process.env.DB_NAME;
 
 // Create a connection pool (connection)
 const pool = mysql.createPool({
-	host: "sql.freedb.tech",
-	user: "freedb_Yassenmohamed",
-	password: "76nU@nH$Gms%eVZ",
-	database: "freedb_Metromart",
+	host: DB_HOST,
+	user: DB_USER,
+	password: DB_PASSWORD,
+	database: DB_NAME,
 });
 
 async function fetchDataAndStore() {
