@@ -1,5 +1,6 @@
 const axios = require("axios");
 const mysql = require("mysql2/promise");
+const fs = require("fs");
 require("dotenv").config();
 
 const DB_HOST = process.env.DB_HOST;
@@ -15,24 +16,60 @@ const pool = mysql.createPool({
 	database: DB_NAME,
 });
 
+// Read the JSON file
+
+fs.readFile("newData.json", "utf8", (err, data) => {
+	if (err) {
+		console.error(err);
+		return;
+	}
+
+	// Parse the JSON data
+	const items = JSON.parse(data);
+	// console.log(items);
+	// Get all the categories
+	const brands = items.map((item)=> item.brand);
+	console.log(brands);
+	const categories = items.map((item) => {
+		item = {
+			id: item.id,
+			title: item.title,
+			description: item.description,
+			price: item.price,
+			discountPercentage: "5",
+			rate: "3",
+			stock: "197",
+			brand: "",
+			category: "Miscellaneous",
+			images: [
+				"https://i.imgur.com/TF0pXdL.jpg",
+				"https://i.imgur.com/BLDByXP.jpg",
+				"https://i.imgur.com/b7trwCv.jpg",
+			],
+		};
+	});
+});
+
+const Categories = {
+	Electronics: 1,
+	Clothes: 2,
+	Furniture: 3,
+	Shoes: 4,
+	Miscellaneous: 5,
+};
+
+// console.log(Categories);
+// console.log(Categories["Clothes"]);
 async function fetchDataAndStore() {
 	try {
 		// Fetch data from the API
-		const response = await axios.get("https://dummyjson.com/products");
-		const products = response.data.products;
 
 		// Get a connection from the pool
 		const connection = await pool.getConnection();
 
 		// Loop through the products and store them in the database
 		for (let product of products) {
-			const {
-				title,
-				price,
-				description,
-				images,
-				category,
-			} = product;
+			const { title, price, description, images, category } = product;
 
 			// Insert the product into the database
 			if (category == "laptops") {
@@ -50,5 +87,4 @@ async function fetchDataAndStore() {
 		console.error(`Error: ${error}`);
 	}
 }
-fetchDataAndStore();
-
+// fetchDataAndStore();
