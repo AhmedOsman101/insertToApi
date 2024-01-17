@@ -1,4 +1,3 @@
-const axios = require("axios");
 const mysql = require("mysql2/promise");
 const fs = require("fs");
 const util = require("util");
@@ -27,15 +26,13 @@ async function readAndStoreItems() {
 		const data = await readFile("newData.json", "utf8");
 		const items = JSON.parse(data);
 		newItems = items.map((element, index) => {
-			if (index >= 11) element.id = index + 1;
+			if (index >= 11) element.id = `${index + 1}`;
 			return element;
-			// console.log(index, element);
 		});
 		fs.writeFile("products.json", JSON.stringify(newItems), (err) => {
 			if (err) throw err;
 			console.log("The file has been saved!");
 		});
-		// console.log(newItems);
 		// fetchDataAndStore(items);
 	} catch (err) {
 		// Handle error
@@ -44,10 +41,7 @@ async function readAndStoreItems() {
 }
 
 readAndStoreItems();
-// console.log(readAndStoreItems());
-// console.log(Object.keys(readAndStoreItems()));
 
-// console.log(Categories); console.log(Categories["Clothes"]);
 async function fetchDataAndStore(data) {
 	try {
 		const Categories = {
@@ -95,7 +89,6 @@ async function fetchDataAndStore(data) {
 		// Release the connection back to the pool
 		connection.release();
 		console.log("success");
-		// console.log(data);
 	} catch (error) {
 		console.error(`Error: ${error}`);
 	}
