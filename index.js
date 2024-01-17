@@ -26,7 +26,17 @@ async function readAndStoreItems() {
 		// Read the file and parse JSON data
 		const data = await readFile("newData.json", "utf8");
 		const items = JSON.parse(data);
-		fetchDataAndStore(items);
+		newItems = items.map((element, index) => {
+			if (index >= 11) element.id = index + 1;
+			return element;
+			// console.log(index, element);
+		});
+		fs.writeFile("products.json", JSON.stringify(newItems), (err) => {
+			if (err) throw err;
+			console.log("The file has been saved!");
+		});
+		// console.log(newItems);
+		// fetchDataAndStore(items);
 	} catch (err) {
 		// Handle error
 		console.error("Error reading file:", err);
@@ -69,7 +79,7 @@ async function fetchDataAndStore(data) {
 					description, image_path, discount, rating, stock) VALUES
 					(?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 				[
-					+id+1,
+					id,
 					title,
 					price,
 					Categories[category],
