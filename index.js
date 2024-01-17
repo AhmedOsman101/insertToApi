@@ -1,6 +1,7 @@
 const axios = require("axios");
 const mysql = require("mysql2/promise");
 const fs = require("fs");
+const util = require("util");
 require("dotenv").config();
 
 const DB_HOST = process.env.DB_HOST;
@@ -18,73 +19,74 @@ const pool = mysql.createPool({
 
 // Read the JSON file
 
-fs.readFile("newData.json", "utf8", (err, data) => {
-	if (err) {
-		console.error(err);
-		return;
-	}
+const readFile = util.promisify(fs.readFile);
 
-	// Parse the JSON data
-	const items = JSON.parse(data);
-	// console.log(items);
-	// Get all the categories
-	const brands = items.map((item)=> item.brand);
-	console.log(brands);
-	const categories = items.map((item) => {
-		item = {
-			id: item.id,
-			title: item.title,
-			description: item.description,
-			price: item.price,
-			discountPercentage: "5",
-			rate: "3",
-			stock: "197",
-			brand: "",
-			category: "Miscellaneous",
-			images: [
-				"https://i.imgur.com/TF0pXdL.jpg",
-				"https://i.imgur.com/BLDByXP.jpg",
-				"https://i.imgur.com/b7trwCv.jpg",
-			],
-		};
-	});
-});
-
-const Categories = {
-	Electronics: 1,
-	Clothes: 2,
-	Furniture: 3,
-	Shoes: 4,
-	Miscellaneous: 5,
-};
-
-// console.log(Categories);
-// console.log(Categories["Clothes"]);
-async function fetchDataAndStore() {
+async function readAndStoreItems() {
 	try {
-		// Fetch data from the API
+		// Read the file and parse JSON data
+		const data = await readFile("newData.json", "utf8");
+		const items = JSON.parse(data);
+		fetchDataAndStore(items);
+	} catch (err) {
+		// Handle error
+		console.error("Error reading file:", err);
+	}
+}
 
+readAndStoreItems();
+// console.log(readAndStoreItems());
+// console.log(Object.keys(readAndStoreItems()));
+
+// console.log(Categories); console.log(Categories["Clothes"]);
+async function fetchDataAndStore(data) {
+	try {
+		const Categories = {
+			Electronics: 1,
+			Clothes: 2,
+			Furniture: 3,
+			Shoes: 4,
+			Miscellaneous: 5,
+		};
 		// Get a connection from the pool
 		const connection = await pool.getConnection();
 
 		// Loop through the products and store them in the database
-		for (let product of products) {
-			const { title, price, description, images, category } = product;
-
+		for (let product of data) {
+			const {
+				id,
+				title,
+				price,
+				category,
+				description,
+				discountPercentage,
+				rate,
+				stock,
+				images,
+			} = product;
 			// Insert the product into the database
-			if (category == "laptops") {
-				await connection.query(
-					"INSERT INTO products (name, price, category_id ,description, image_path) VALUES (?, ?, ?, ?, ?)",
-					[title, price, 1, description, images[0]]
-				);
-			}
+			await connection.query(
+				`INSERT INTO products (id, name, price, category_id,
+					description, image_path, discount, rating, stock) VALUES
+					(?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+				[
+					+id+1,
+					title,
+					price,
+					Categories[category],
+					description,
+					JSON.stringify(images),
+					discountPercentage,
+					rate,
+					stock,
+				]
+			);
 		}
 
 		// Release the connection back to the pool
 		connection.release();
-		console.log(products);
+		console.log("success");
+		// console.log(data);
 	} catch (error) {
 		console.error(`Error: ${error}`);
 	}
 }
-// fetchDataAndStore();
